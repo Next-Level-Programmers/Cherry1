@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Cherry1</string>
+    <string name="welcome_to_tracking_vehicle">Welcome to tracking vehicle!</string>
+    <string name="you_can_track_vehicle_check_ignition_n_status_in_this_application">You can track vehicle, check ignition\n status in this application</string>
+    <string name="name">Search Location</string>
+    <string name="Continue">Continue</string>
+    <string name="navigation_drawer_open">Open Drawer</string>
+    <string name="navigation_drawer_close">Close Drawer</string>
+    <string name="open_sidebar">Open Sidebar</string>
+    <string name="open_drawer">Open Drawer</string>
+    <string name="profile_picture">Profile Picture</string>
+    <string name="user">Chandra Prakash Singh</string>
+    <string name="google_maps_key" translatable="false">YOUR_GOOGLE_MAPS_API_KEY</string>
+    <string name="sos">SOS</string>
+</resources>
