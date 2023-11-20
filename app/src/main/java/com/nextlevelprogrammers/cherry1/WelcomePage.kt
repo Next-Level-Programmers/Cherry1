@@ -66,6 +66,8 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
+        navigationView = findViewById(R.id.navigationView)
+
         Places.initialize(applicationContext, getString(R.string.google_maps_key))
 
         drawerLayout = findViewById(R.id.drawerLayout) // Initialize DrawerLayout
