@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 class EmergencyContactsActivity : AppCompatActivity() {
 
     private val CONTACTS_READ_REQUEST = 101
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_emergency_contacts)
@@ -35,7 +36,6 @@ class EmergencyContactsActivity : AppCompatActivity() {
         }
 
     }
-
     fun onPickContactsClicked(view: View) {
         val intent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
         startActivityForResult(intent, PICK_CONTACT_REQUEST)
