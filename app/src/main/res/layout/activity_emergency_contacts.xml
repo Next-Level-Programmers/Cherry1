@@ -1,54 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".EmergencyContactsActivity">
+    android:layout_height="match_parent">
 
+    <!-- CardView for displaying contact details -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/contactCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:elevation="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/nameTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/numberTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Button to pick contacts -->
     <Button
-        android:id="@+id/pickContactButton"
+        android:id="@+id/pickContactsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/pick_contacts"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/showDataButton"
-        android:layout_marginTop="16dp"/>
-
-    <Button
-        android:id="@+id/showDataButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Show Data"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pickContactButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/selectedContactsTextView"
-        android:layout_marginTop="16dp"/>
-
-    <TextView
-        android:id="@+id/selectedContactsTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/selected_contacts"
-        app:layout_constraintTop_toBottomOf="@+id/showDataButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/contactNumber"
-        android:layout_marginTop="16dp"/>
-
-    <TextView
-        android:id="@+id/contactNumber"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/selected_contacts"
-        app:layout_constraintTop_toBottomOf="@+id/selectedContactsTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginTop="16dp"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:text="Add Contact"
+        android:onClick="onPickContactsClicked"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp" />
+</RelativeLayout>
