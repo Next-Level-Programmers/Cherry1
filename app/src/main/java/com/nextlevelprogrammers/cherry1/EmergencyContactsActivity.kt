@@ -8,15 +8,17 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.view.View
+import android.widget.Adapter
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class EmergencyContactsActivity : AppCompatActivity() {
-
+    private lateinit var adapter:ContactAdapter
     private val CONTACTS_READ_REQUEST = 101
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_emergency_contacts)
@@ -34,8 +36,12 @@ class EmergencyContactsActivity : AppCompatActivity() {
         } else {
             getContacts()
         }
-
+        val recyclerView=findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView.layoutManager=LinearLayoutManager(this)
+        adapter= ContactAdapter()
+        recyclerView.adapter=adapter
     }
+
     fun onPickContactsClicked(view: View) {
         val intent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
         startActivityForResult(intent, PICK_CONTACT_REQUEST)
@@ -81,10 +87,11 @@ class EmergencyContactsActivity : AppCompatActivity() {
                                     phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                                 if (phoneCur.moveToFirst() && phoneNumberIndex != -1) {
                                     val phoneNumber = phoneCur.getString(phoneNumberIndex)
-
-                                    // Update the CardView with contact information
-                                    findViewById<TextView>(R.id.nameTextView).text = "Name: $name"
-                                    findViewById<TextView>(R.id.numberTextView).text = "Number: $phoneNumber"
+                                    val data=contactInfo(
+                                        name,
+                                        phoneNumber
+                                    )
+                                    adapter.update(data)
                                 }
                                 phoneCur.close()
                             }

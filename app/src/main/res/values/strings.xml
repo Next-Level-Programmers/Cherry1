@@ -56,4 +56,5 @@
     </string>
     <string name="pick_contacts">Pick Contacts</string>
     <string name="selected_contacts">Selected Contacts:</string>
+    <string name="add_contact">Add Contact</string>
 </resources>
