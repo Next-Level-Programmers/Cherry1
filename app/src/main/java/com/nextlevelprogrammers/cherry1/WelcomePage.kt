@@ -13,12 +13,17 @@ import android.telephony.SmsManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,11 +40,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
-import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.android.material.navigation.NavigationView
 import java.io.IOException
 
@@ -51,7 +54,8 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var drawerLayout: DrawerLayout // Added
     private lateinit var navigationView: NavigationView
     private lateinit var placesClient: PlacesClient
-    private lateinit var autocompleteSessionToken: AutocompleteSessionToken
+    private lateinit var autoCompleteTextView: AutoCompleteTextView
+    private lateinit var adapter: ArrayAdapter<String>
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val CALL_PERMISSION_REQUEST_CODE = 101
     private val SMS_PERMISSION_REQUEST_CODE = 102
@@ -59,6 +63,9 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_welcome_page)
+
+        Places.initialize(applicationContext, getString(R.string.google_maps_key))
+        placesClient = Places.createClient(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -68,19 +75,19 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
 
         navigationView = findViewById(R.id.navigationView)
 
+        autoCompleteTextView = findViewById(R.id.searchLocation)
+
         Places.initialize(applicationContext, getString(R.string.google_maps_key))
 
         drawerLayout = findViewById(R.id.drawerLayout) // Initialize DrawerLayout
         drawerLayout.closeDrawer(GravityCompat.START)
         val btnOpenDrawer: ImageButton = findViewById(R.id.btnOpenDrawer) // Initialize NavigationView
-
-        val searchLocationEditText = findViewById<EditText>(R.id.searchLocation)
         val searchImageButton = findViewById<ImageButton>(R.id.imageButton)
+        val suggestionList = mutableListOf<String>()
         Places.createClient(this)
-        val autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment_container)
-                as AutocompleteSupportFragment?
 
-        autocompleteFragment?.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME))
+        adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, suggestionList)
+        autoCompleteTextView.setAdapter(adapter)
 
         btnOpenDrawer.setOnClickListener {
             if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -104,10 +111,24 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
         setupDrawer(btnOpenDrawer)
         setupNavigationView()
         checkLocationPermission()
-        initPlaces()
+
+        autoCompleteTextView.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Fetch new predictions based on the entered text
+                val newText = s.toString()
+                // Make a request for predictions based on newText using the Places API
+                // Update suggestionList with the new predictions received
+                // Update the adapter with the new suggestionList
+                // notifyDataSetChanged() might be needed to refresh the suggestions
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
 
         searchImageButton.setOnClickListener {
-            val location = searchLocationEditText.text.toString()
+            val location = autoCompleteTextView.text.toString()
 
             try {
                 // Use Geocoding service to convert location to LatLng
@@ -139,25 +160,60 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        autocompleteFragment?.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-            override fun onPlaceSelected(place: Place) {
-                val name = place.name
-                val address = place.address
-                val latLng = place.latLng
+        autoCompleteTextView.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-                latLng?.let { it1 -> CameraUpdateFactory.newLatLngZoom(it1, 15f) }
-                    ?.let { it2 -> googleMap.moveCamera(it2) }
-                latLng?.let { it1 -> MarkerOptions().position(it1).title(name) }
-                    ?.let { it2 -> googleMap.addMarker(it2) }
-                searchLocationEditText.setText(name)
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Call function to fetch predictions based on the entered text
+                fetchAutocompletePredictions(s.toString())
             }
 
-            override fun onError(status: Status) {
-                Log.e("Places", "An error occurred: $status")
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
 
+        autoCompleteTextView.setOnClickListener {
+            val popupWindow = PopupWindow(this)
+            val view = layoutInflater.inflate(android.R.layout.simple_dropdown_item_1line, null)
+            popupWindow.contentView = view
 
+            val height = WindowManager.LayoutParams.WRAP_CONTENT
+            val width = autoCompleteTextView.width
+
+            popupWindow.height = height
+            popupWindow.width = width
+            popupWindow.isFocusable = true
+
+            // Show dropdown below AutoCompleteTextView
+            popupWindow.showAsDropDown(autoCompleteTextView)
+        }
+    }
+
+    private fun fetchAutocompletePredictions(query: String) {
+        val request = AutocompleteSessionToken.newInstance()
+
+        val autocompletePredictionsRequest = FindAutocompletePredictionsRequest.builder()
+            .setTypeFilter(TypeFilter.ADDRESS)
+            .setSessionToken(request)
+            .setQuery(query)
+            .build()
+
+        placesClient.findAutocompletePredictions(autocompletePredictionsRequest)
+            .addOnSuccessListener { response ->
+                val predictions = response.autocompletePredictions
+
+                val suggestionList = mutableListOf<String>()
+                for (prediction in predictions) {
+                    suggestionList.add(prediction.getPrimaryText(null).toString())
+                }
+
+                adapter.clear()
+                adapter.addAll(suggestionList)
+                adapter.notifyDataSetChanged()
+            }
+            .addOnFailureListener { exception ->
+                // Handle failure
+                Log.e("Places", "Autocomplete prediction fetching failed: $exception")
+            }
     }
 
     private fun checkLocationPermission() {
@@ -250,64 +306,6 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
                 drawerLayout.closeDrawer(GravityCompat.START)
             }
         }
-    }
-    private fun searchLocation(location: String) {
-        try {
-            val geocoder = Geocoder(this)
-            val addressList = geocoder.getFromLocationName(location, 1)
-
-            if (!addressList.isNullOrEmpty()) {
-                val latitude = addressList[0].latitude
-                val longitude = addressList[0].longitude
-
-                val searchedLatLng = LatLng(latitude, longitude)
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(searchedLatLng, 15f))
-                googleMap.addMarker(MarkerOptions().position(searchedLatLng).title(location))
-            } else {
-                Toast.makeText(this, "Location not found", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
-            Toast.makeText(this, "Invalid location", Toast.LENGTH_SHORT).show()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(this, "Error fetching location", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun initPlaces() {
-        Places.initialize(applicationContext, getString(R.string.google_maps_key))
-        placesClient = Places.createClient(this)
-        autocompleteSessionToken = AutocompleteSessionToken.newInstance()
-    }
-
-    private fun setupSearchBar(searchLocationEditText: EditText) {
-        searchLocationEditText.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                val query = s.toString()
-
-                val autocompletePredictionsRequest =
-                    FindAutocompletePredictionsRequest.builder()
-                        .setSessionToken(autocompleteSessionToken)
-                        .setQuery(query)
-                        .build()
-
-                val autocompletePredictions =
-                    placesClient.findAutocompletePredictions(autocompletePredictionsRequest)
-
-                autocompletePredictions.addOnSuccessListener { response ->
-                    val predictions = response.autocompletePredictions
-                    // Handle predictions, show suggestions, update UI, etc.
-                }
-
-                autocompletePredictions.addOnFailureListener { exception ->
-                    Log.e("Places", "Autocomplete prediction fetching failed: $exception")
-                }
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
     }
 
 
