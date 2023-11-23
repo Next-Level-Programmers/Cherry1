@@ -13,13 +13,10 @@ import android.telephony.SmsManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.PopupWindow
 import android.widget.Toast
@@ -29,7 +26,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -117,7 +113,6 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // Fetch new predictions based on the entered text
-                val newText = s.toString()
                 // Make a request for predictions based on newText using the Places API
                 // Update suggestionList with the new predictions received
                 // Update the adapter with the new suggestionList
@@ -377,7 +372,7 @@ class WelcomePage : AppCompatActivity(), OnMapReadyCallback {
         activateSOS()
     }
 
-    fun activateSOS() {
+    private fun activateSOS() {
         val phoneNumber = "8957821509" // Replace with your emergency phone number
 
         // Check if SMS permission is granted
