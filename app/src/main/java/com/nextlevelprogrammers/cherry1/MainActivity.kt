@@ -1,9 +1,8 @@
 package com.nextlevelprogrammers.cherry1
 
-import android.content.Context
+import AppPreferences
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -22,13 +21,21 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val continueButton = findViewById<Button>(R.id.button)
+        val continueButton = findViewById<Button>(R.id.button2)
         continueButton.setOnClickListener {
             // Mark intro as completed
             AppPreferences.setIntroCompleted(this, true)
             // Launch WelcomePage
             startActivity(Intent(this, WelcomePage::class.java))
+            overridePendingTransition(R.transition.slide_in_left, R.transition.slide_out_right)
             finish()
+        }
+
+        val createAcc = findViewById<Button>(R.id.button1)
+        createAcc.setOnClickListener {
+            // Launch WelcomePage
+            startActivity(Intent(this, PhoneEnter::class.java))
+            overridePendingTransition(R.transition.slide_in_left, R.transition.slide_out_right)
         }
     }
 }
